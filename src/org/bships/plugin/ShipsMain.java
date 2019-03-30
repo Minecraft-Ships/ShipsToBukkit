@@ -1,7 +1,9 @@
 package org.bships.plugin;
 
+import org.bships.plugin.command.debug.ShipsTest;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.core.CorePlugin;
 import org.ships.implementation.bukkit.CoreToBukkit;
 
 public class ShipsMain extends JavaPlugin {
@@ -12,6 +14,7 @@ public class ShipsMain extends JavaPlugin {
         plugin = this;
         new CoreToBukkit(this);
         ShipsBPlugin plugin = new ShipsBPlugin();
+        CorePlugin.getServer().registerCommands(new ShipsTest());
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> plugin.getLoadedMessages());
     }
 
