@@ -1,5 +1,6 @@
 package org.bships.plugin.command.debug;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.core.CorePlugin;
 import org.core.command.BaseCommandLauncher;
@@ -8,15 +9,13 @@ import org.core.source.command.CommandSource;
 import org.core.world.position.block.details.BlockDetails;
 import org.core.world.position.block.details.blocks.GeneralBlock;
 import org.ships.implementation.bukkit.platform.BukkitPlatform;
+import org.ships.implementation.bukkit.world.position.block.details.blocks.AbstractBlockDetails;
 import org.ships.plugin.ShipsPlugin;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class ShipsTest implements BaseCommandLauncher {
     @Override
@@ -46,25 +45,16 @@ public class ShipsTest implements BaseCommandLauncher {
 
     @Override
     public boolean run(CommandSource source, String... args) {
-        List<String> bukkitDetails = new ArrayList<>();
-        List<String> coreDetails = new ArrayList<>();
-
-        List<String> itemtypesMaker = new ArrayList<>();
+        List<Class<? extends org.bukkit.block.data.BlockData>> bukkitDetails = new ArrayList<>();
+        List<AbstractBlockDetails> coreDetails = new ArrayList<>();
 
         int totalBlockDetails = 0;
         int compatibleBlockDetails = 0;
         BukkitPlatform platform = ((BukkitPlatform)CorePlugin.getPlatform());
         for(org.bukkit.Material material : org.bukkit.Material.values()){
-            if(material.isItem()){
-                itemtypesMaker.add("public static final ItemType " + material.name() + " = CorePlugin.getPlatform().get(new ItemTypes1V13(\"" + material.getKey().toString() + "\"));");
-            }
             if(material.isBlock()){
                 org.bukkit.block.data.BlockData data = material.createBlockData();
 
-                String baseId = data.getAsString();
-                if(baseId.contains("[")){
-                    baseId = baseId.split(Pattern.quote("["))[0];
-                }
                 for(String arg : args){
                     if(data.getMaterial().name().equalsIgnoreCase(arg)){
                         System.out.println(data.getMaterial().name() + ": " + data.getClass().getSimpleName());
@@ -74,41 +64,37 @@ public class ShipsTest implements BaseCommandLauncher {
                     continue;
                 }
                 totalBlockDetails++;
-                if(!bukkitDetails.contains(data.getClass().getSimpleName())){
-                    bukkitDetails.add(data.getClass().getSimpleName());
+                if(!bukkitDetails.stream().anyMatch(c -> c.isAssignableFrom(data.getClass()))){
+                    bukkitDetails.add(data.getClass());
                 }
                 BlockDetails details = platform.createBlockDetailInstance(data);
                 if(!(details instanceof GeneralBlock)){
                     compatibleBlockDetails++;
-                    if(!coreDetails.contains(details.getClass().getSimpleName())){
-                        coreDetails.add(details.getClass().getSimpleName());
+                    if(!coreDetails.stream().anyMatch(d -> d.getClass().getSimpleName().equals(details.getClass().getSimpleName()))){
+                        coreDetails.add((AbstractBlockDetails) details);
                     }
                 }
             }
         }
         System.out.println("BlockDetails: " + compatibleBlockDetails + "/" + totalBlockDetails);
         System.out.println("BlockDetailsTypes: " + coreDetails.size() + "/" + bukkitDetails.size());
-        System.out.println("Entities: " + CorePlugin.getPlatform().getEntityTypes().size() + "/" + EntityType.values().length);
+        System.out.println("Entities: " + ((BukkitPlatform) CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().size() + "/" + EntityType.values().length);
 
-        File file = new File("Testing/1.13 Items.txt");
-        itemtypesMaker.sort(Comparator.naturalOrder());
-        try {
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-            FileWriter fileWriter = new FileWriter(file);
-            itemtypesMaker.forEach(f -> {
-                try {
-                    fileWriter.write(f + "\n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            fileWriter.flush();
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Blocks to do: ");
+        bukkitDetails.stream().filter(bd -> coreDetails.stream().noneMatch(cd -> cd.getBukkitData().getClass().isAssignableFrom(bd))).forEach(d -> System.out.println("\t- " + d.getSimpleName()));
 
+        Set<Class<? extends Entity>> doneEntities = ((BukkitPlatform)CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().keySet();
+        System.out.println("Entities to do:");
+        Stream.of(EntityType.values())
+                .filter(et -> doneEntities.stream()
+                        .noneMatch(de -> {
+                            Class<? extends Entity> eClass = et.getEntityClass();
+                            if(eClass != null){
+                                return eClass.isAssignableFrom(de);
+                            }
+                            return false;
+                        }))
+                .forEach(e -> System.out.println("\t- " + e.name()));
         return true;
     }
 
