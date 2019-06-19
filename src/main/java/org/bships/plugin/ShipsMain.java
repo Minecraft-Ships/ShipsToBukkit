@@ -8,14 +8,19 @@ import org.ships.implementation.bukkit.CoreToBukkit;
 
 public class ShipsMain extends JavaPlugin {
 
+    private ShipsBPlugin shipsPlugin;
     private static ShipsMain plugin;
 
     public void onEnable(){
         plugin = this;
         new CoreToBukkit(this);
-        ShipsBPlugin plugin = new ShipsBPlugin();
+        shipsPlugin = new ShipsBPlugin();
         CorePlugin.getServer().registerCommands(new ShipsTest());
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this, plugin::getLoadedMessages);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, this.shipsPlugin::getLoadedMessages);
+    }
+
+    public void onDisable(){
+        this.shipsPlugin.getDebugFile().writeToDebug();
     }
 
     public static ShipsMain getPlugin(){

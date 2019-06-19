@@ -3,8 +3,14 @@ package org.bships.plugin;
 import org.ships.plugin.ShipsPlugin;
 
 import java.io.File;
+import java.util.Optional;
 
 public class ShipsBPlugin extends ShipsPlugin {
+
+    @Override
+    public Optional<String> checkForUpdates() {
+        return Optional.empty();
+    }
 
     @Override
     public Object getBukkitLauncher() {

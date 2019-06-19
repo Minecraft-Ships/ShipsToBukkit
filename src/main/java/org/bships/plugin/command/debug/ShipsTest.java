@@ -1,15 +1,14 @@
 package org.bships.plugin.command.debug;
 
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.core.CorePlugin;
 import org.core.command.BaseCommandLauncher;
 import org.core.platform.Plugin;
 import org.core.source.command.CommandSource;
-import org.core.world.position.block.details.BlockDetails;
-import org.core.world.position.block.details.blocks.GeneralBlock;
 import org.ships.implementation.bukkit.platform.BukkitPlatform;
-import org.ships.implementation.bukkit.world.position.block.details.blocks.AbstractBlockDetails;
+import org.ships.implementation.bukkit.world.position.block.details.blocks.BBlockDetails;
 import org.ships.plugin.ShipsPlugin;
 
 import java.util.ArrayList;
@@ -45,44 +44,19 @@ public class ShipsTest implements BaseCommandLauncher {
 
     @Override
     public boolean run(CommandSource source, String... args) {
-        List<Class<? extends org.bukkit.block.data.BlockData>> bukkitDetails = new ArrayList<>();
-        List<AbstractBlockDetails> coreDetails = new ArrayList<>();
-
-        int totalBlockDetails = 0;
-        int compatibleBlockDetails = 0;
-        BukkitPlatform platform = ((BukkitPlatform)CorePlugin.getPlatform());
-        for(org.bukkit.Material material : org.bukkit.Material.values()){
-            if(material.isBlock()){
-                org.bukkit.block.data.BlockData data = material.createBlockData();
-
-                for(String arg : args){
-                    if(data.getMaterial().name().equalsIgnoreCase(arg)){
-                        System.out.println(data.getMaterial().name() + ": " + data.getClass().getSimpleName());
-                    }
+        for(String id : args) {
+            CorePlugin.getPlatform().getBlockType("minecraft:" + id).ifPresent(bt -> {
+                System.out.println("--[" + bt.getName() + "]--");
+                BlockData data = ((BBlockDetails)bt.getDefaultBlockDetails()).getBukkitData();
+                for (Class<?> inta : data.getClass().getInterfaces()){
+                    System.out.println("\t" + inta.getName());
                 }
-                if(data.getClass().getSimpleName().equals("CraftBlockData")){
-                    continue;
-                }
-                totalBlockDetails++;
-                if(!bukkitDetails.stream().anyMatch(c -> c.isAssignableFrom(data.getClass()))){
-                    bukkitDetails.add(data.getClass());
-                }
-                BlockDetails details = platform.createBlockDetailInstance(data);
-                if(!(details instanceof GeneralBlock)){
-                    compatibleBlockDetails++;
-                    if(!coreDetails.stream().anyMatch(d -> d.getClass().getSimpleName().equals(details.getClass().getSimpleName()))){
-                        coreDetails.add((AbstractBlockDetails) details);
-                    }
-                }
-            }
+            });
         }
-        System.out.println("BlockDetails: " + compatibleBlockDetails + "/" + totalBlockDetails);
-        System.out.println("BlockDetailsTypes: " + coreDetails.size() + "/" + bukkitDetails.size());
+        if(args.length != 0){
+            return true;
+        }
         System.out.println("Entities: " + ((BukkitPlatform) CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().size() + "/" + EntityType.values().length);
-
-        System.out.println("Blocks to do: ");
-        bukkitDetails.stream().filter(bd -> coreDetails.stream().noneMatch(cd -> cd.getBukkitData().getClass().isAssignableFrom(bd))).forEach(d -> System.out.println("\t- " + d.getSimpleName()));
-
         Set<Class<? extends Entity>> doneEntities = ((BukkitPlatform)CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().keySet();
         System.out.println("Entities to do:");
         Stream.of(EntityType.values())
