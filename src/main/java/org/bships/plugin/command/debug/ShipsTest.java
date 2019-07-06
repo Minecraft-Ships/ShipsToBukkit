@@ -4,7 +4,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.core.CorePlugin;
-import org.core.command.BaseCommandLauncher;
+import org.core.command.CommandLauncher;
 import org.core.platform.Plugin;
 import org.core.source.command.CommandSource;
 import org.ships.implementation.bukkit.platform.BukkitPlatform;
@@ -13,10 +13,11 @@ import org.ships.plugin.ShipsPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class ShipsTest implements BaseCommandLauncher {
+public class ShipsTest implements CommandLauncher {
     @Override
     public String getName() {
         return "shipstest";
@@ -28,8 +29,8 @@ public class ShipsTest implements BaseCommandLauncher {
     }
 
     @Override
-    public String getPermission() {
-        return "shipscore.cmd.shipstest";
+    public Optional<String> getPermission() {
+        return Optional.of("shipscore.cmd.shipstest");
     }
 
     @Override
