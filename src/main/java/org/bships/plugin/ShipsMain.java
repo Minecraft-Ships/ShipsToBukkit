@@ -16,7 +16,11 @@ public class ShipsMain extends JavaPlugin {
         new CoreToBukkit(this);
         shipsPlugin = new ShipsBPlugin();
         CorePlugin.getServer().registerCommands(new ShipsTest());
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this, this.shipsPlugin::getLoadedMessages);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+            this.shipsPlugin.loadCustomShipType();
+            this.shipsPlugin.loadVessels();
+            this.shipsPlugin.getLoadedMessages();
+        });
     }
 
     public void onDisable(){
