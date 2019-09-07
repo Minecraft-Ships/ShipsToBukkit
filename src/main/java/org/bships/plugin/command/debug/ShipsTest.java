@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.core.CorePlugin;
 import org.core.command.CommandLauncher;
+import org.core.entity.living.human.player.LivePlayer;
 import org.core.platform.Plugin;
 import org.core.source.command.CommandSource;
 import org.ships.implementation.bukkit.platform.BukkitPlatform;
@@ -13,7 +14,6 @@ import org.ships.plugin.ShipsPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -29,8 +29,8 @@ public class ShipsTest implements CommandLauncher {
     }
 
     @Override
-    public Optional<String> getPermission() {
-        return Optional.of("shipscore.cmd.shipstest");
+    public boolean hasPermission(CommandSource source) {
+        return !(source instanceof LivePlayer);
     }
 
     @Override
@@ -47,19 +47,15 @@ public class ShipsTest implements CommandLauncher {
     public boolean run(CommandSource source, String... args) {
         for(String id : args) {
             CorePlugin.getPlatform().getBlockType("minecraft:" + id).ifPresent(bt -> {
-                System.out.println("--[" + bt.getName() + "]--");
                 BlockData data = ((BBlockDetails)bt.getDefaultBlockDetails()).getBukkitData();
                 for (Class<?> inta : data.getClass().getInterfaces()){
-                    System.out.println("\t" + inta.getName());
                 }
             });
         }
         if(args.length != 0){
             return true;
         }
-        System.out.println("Entities: " + ((BukkitPlatform) CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().size() + "/" + EntityType.values().length);
         Set<Class<? extends Entity>> doneEntities = ((BukkitPlatform)CorePlugin.getPlatform()).getBukkitEntityToCoreEntityMap().keySet();
-        System.out.println("Entities to do:");
         Stream.of(EntityType.values())
                 .filter(et -> doneEntities.stream()
                         .noneMatch(de -> {
