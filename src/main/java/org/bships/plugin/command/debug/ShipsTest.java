@@ -1,20 +1,28 @@
 package org.bships.plugin.command.debug;
 
+import org.bukkit.Bukkit;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.persistence.PersistentDataHolder;
 import org.core.CorePlugin;
 import org.core.command.CommandLauncher;
 import org.core.entity.living.human.player.LivePlayer;
 import org.core.platform.Plugin;
 import org.core.source.command.CommandSource;
 import org.ships.implementation.bukkit.platform.BukkitPlatform;
-import org.ships.implementation.bukkit.world.position.block.details.blocks.BBlockDetails;
 import org.ships.plugin.ShipsPlugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 public class ShipsTest implements CommandLauncher {
@@ -45,12 +53,39 @@ public class ShipsTest implements CommandLauncher {
 
     @Override
     public boolean run(CommandSource source, String... args) {
-        for(String id : args) {
-            CorePlugin.getPlatform().getBlockType("minecraft:" + id).ifPresent(bt -> {
-                BlockData data = ((BBlockDetails)bt.getDefaultBlockDetails()).getBukkitData();
-                for (Class<?> inta : data.getClass().getInterfaces()){
+        try {
+            File bukkitFile = new File(Bukkit.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            JarFile bukkitJar = new JarFile(bukkitFile);
+            Enumeration<JarEntry> entries = bukkitJar.entries();
+            while(entries.hasMoreElements()){
+                JarEntry entry = entries.nextElement();
+                if (entry.isDirectory()){
+                    continue;
                 }
-            });
+                if (!entry.getName().endsWith(".class")){
+                    continue;
+                }
+                if (!entry.getName().startsWith("org/bukkit/block")){
+                    continue;
+                }
+                try {
+                    Class target = Class.forName(entry.getName().replaceAll("/", ".").substring(0, entry.getName().length() - 6));
+                    if (!org.bukkit.block.BlockState.class.isAssignableFrom(target)){
+                        continue;
+                    }
+                    boolean check = ((BukkitPlatform)CorePlugin.getPlatform()).getBukkitBlockStateToCoreTileEntity().keySet().stream().anyMatch(e -> (e.getName() + ".class").equals(entry.getName().replaceAll("/", ".")));
+                    if(check){
+                        continue;
+                    }
+                    if (target.getInterfaces().length == 1 && PersistentDataHolder.class.isAssignableFrom(target.getInterfaces()[0]) && target.getDeclaredMethods().length == 0){
+                        continue;
+                    }
+                }catch (ClassNotFoundException e){
+                    continue;
+                }
+            }
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
         }
         if(args.length != 0){
             return true;
