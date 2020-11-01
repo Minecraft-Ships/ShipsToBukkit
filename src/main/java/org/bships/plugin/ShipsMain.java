@@ -2,10 +2,14 @@ package org.bships.plugin;
 
 import org.bships.plugin.command.debug.ShipsTest;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.core.CorePlugin;
+import org.core.command.CommandLauncher;
+import org.core.command.CommandRegister;
 import org.ships.config.configuration.ShipsConfig;
 import org.ships.implementation.bukkit.CoreToBukkit;
+import org.ships.implementation.bukkit.command.BCommand;
 import org.ships.implementation.paper.CoreToPaper;
 import org.ships.plugin.ShipsPlugin;
 
@@ -29,7 +33,15 @@ public class ShipsMain extends JavaPlugin {
 
         }
         shipsPlugin = new ShipsBPlugin();
-        CorePlugin.getServer().registerCommands(new ShipsTest());
+        CommandRegister register = new CommandRegister();
+        shipsPlugin.registerCommands(register);
+        for(CommandLauncher command : register.getCommands()){
+            JavaPlugin plugin = (JavaPlugin) command.getPlugin().getLauncher();
+            PluginCommand command2 = plugin.getCommand(command.getName());
+            BCommand command3 = new BCommand(command);
+            command2.setTabCompleter(command3);
+            command2.setExecutor(command3);
+        }
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             this.shipsPlugin.loadCustomShipType();
             this.shipsPlugin.loadVessels();
