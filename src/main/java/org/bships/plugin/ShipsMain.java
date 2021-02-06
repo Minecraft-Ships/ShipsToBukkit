@@ -1,6 +1,5 @@
 package org.bships.plugin;
 
-import org.bships.plugin.command.debug.ShipsTest;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -42,6 +41,9 @@ public class ShipsMain extends JavaPlugin {
             command2.setTabCompleter(command3);
             command2.setExecutor(command3);
         }
+
+        PluginCommand testCMD = Bukkit.getPluginCommand("shipstest");
+
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             this.shipsPlugin.loadCustomShipType();
             this.shipsPlugin.loadVessels();
