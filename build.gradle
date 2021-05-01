@@ -1,0 +1,41 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/')
+    }
+
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
+    }
+}
+
+jar {
+    dependsOn(':CoreToPaper:jar')
+    dependsOn(':ShipsForCore:jar')
+    from {
+        configurations.runtimeClasspath.collect {
+            if (it.path.contains(".m2")) {
+                return
+            }
+            return it.isDirectory() ? it : zipTree(it)
+        }
+    }
+}
+
+dependencies {
+    implementation project(":ShipsCore")
+    implementation project(":CoreToBukkit")
+    implementation project(":CoreToPaper")
+    implementation project(":ShipsForCore")
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+}
+
+group = 'org.ships'
+version = '1.0-SNAPSHOT'
+description = 'ShipsToBukkit'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
