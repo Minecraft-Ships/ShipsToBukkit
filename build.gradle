@@ -16,22 +16,37 @@ repositories {
 jar {
     dependsOn(':CoreToPaper:jar')
     dependsOn(':ShipsForCore:jar')
-    from {
-        configurations.runtimeClasspath.collect {
-            if (it.path.contains(".m2")) {
-                return
-            }
-            return it.isDirectory() ? it : zipTree(it)
-        }
-    }
 }
 
+tasks.register("buildPlugin", Jar) {
+    def path = project.rootDir.path + "\\build\\"
+    file(path).mkdirs()
+    archiveClassifier = 'uber'
+    archiveFileName = 'ShipsBukkit.jar'
+    destinationDirectory = file(path)
+
+
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll {
+            it.name.endsWith('jar') && !it.name.contains("junit") && !it.name.contains("hamcrest")
+        }.collect {
+            zipTree(it).matching {
+                exclude "*.txt"
+            }
+        }
+    }
+    println("Creating file in '" + path + "ShipsBukkit.jar'")
+}
+
+
 dependencies {
-    implementation project(":ShipsCore")
-    implementation project(":CoreToBukkit")
-    implementation project(":CoreToPaper")
-    implementation project(":ShipsForCore")
-    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    api project(":ShipsCore")
+    api project(":CoreToBukkit")
+    api project(":CoreToPaper")
+    api project(":ShipsForCore")
+    api 'com.googlecode.json-simple:json-simple:1.1.1'
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
 }
 
