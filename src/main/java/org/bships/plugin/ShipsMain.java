@@ -51,6 +51,7 @@ public class ShipsMain extends JavaPlugin {
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             this.shipsPlugin.loadCustomShipType();
+            this.shipsPlugin.loadVesselTypeFlagData();
             this.shipsPlugin.loadVessels();
             this.shipsPlugin.getLoadedMessages();
 
