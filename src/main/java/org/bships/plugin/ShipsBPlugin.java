@@ -18,13 +18,13 @@ public class ShipsBPlugin extends ShipsPlugin {
     }
 
     @Override
-    public ShipsMain getLauncher() {
+    public ShipsMain getPlatformLauncher() {
         return ShipsMain.getPlugin();
     }
 
     @Override
     public Optional<ConfigurationStream.ConfigurationFile> createConfig(String configName, File file) {
-        InputStream stream = this.getLauncher().getResource(configName);
+        InputStream stream = this.getPlatformLauncher().getResource(configName);
         if(stream == null){
             System.err.println("Request for '" + configName + "' could not be found");
             return Optional.empty();
@@ -41,6 +41,6 @@ public class ShipsBPlugin extends ShipsPlugin {
 
     @Override
     public Optional<InputStream> getResource(String name) {
-        return Optional.ofNullable(this.getLauncher().getResource(name));
+        return Optional.ofNullable(this.getPlatformLauncher().getResource(name));
     }
 }

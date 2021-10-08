@@ -37,9 +37,9 @@ public class ShipsMain extends JavaPlugin {
         shipsPlugin = new ShipsBPlugin();
         shipsPlugin.registerPlugin();
         CommandRegister register = new CommandRegister();
-        shipsPlugin.registerCommands(register);
+        shipsPlugin.onRegisterCommands(register);
         for (CommandLauncher command : register.getCommands()) {
-            JavaPlugin plugin = (JavaPlugin) command.getPlugin().getLauncher();
+            JavaPlugin plugin = (JavaPlugin) command.getPlugin().getPlatformLauncher();
             PluginCommand command2 = plugin.getCommand(command.getName());
             BCommand command3 = new BCommand(command);
             command2.setTabCompleter(command3);
@@ -47,7 +47,7 @@ public class ShipsMain extends JavaPlugin {
         }
 
         PluginCommand testCMD = Bukkit.getPluginCommand("shipstest");
-        shipsPlugin.registerReady();
+        shipsPlugin.onCoreReady();
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             this.shipsPlugin.loadCustomShipType();
